@@ -30,6 +30,14 @@ options:
         - If the key will be imported or removed from the rpm db.
       default: present
       choices: [ absent, present ]
+    proxy_host:
+      description:
+          - Define proxy host
+      default: ''
+    proxy_port:
+      description:
+          - Define proxy port
+      default: ''
     validate_certs:
       description:
         - If C(no) and the C(key) is a url starting with https, SSL certificates will not be validated.
@@ -64,6 +72,13 @@ EXAMPLES = '''
   rpm_key:
     key: /path/to/RPM-GPG-KEY.dag.txt
     fingerprint: EBC6 E12C 62B1 C734 026B  2122 A20E 5214 6B8D 79E6
+
+# Example action to import a key from a url using a proxy
+- rpm_key:
+    state: present
+    key: http://apt.sw.be/RPM-GPG-KEY.dag.txt
+    proxy_host: http://10.6.192.2
+    proxy_port: 8080
 '''
 import re
 import os.path
@@ -95,6 +110,8 @@ class RpmKey(object):
         fingerprint = module.params['fingerprint']
         if fingerprint:
             fingerprint = fingerprint.replace(' ', '').upper()
+        proxy_host = module.params['proxy_host']
+        proxy_port = module.params['proxy_port']
 
         self.gpg = self.module.get_bin_path('gpg')
         if not self.gpg:
@@ -113,6 +130,11 @@ class RpmKey(object):
             self.module.fail_json(msg="Not a valid key %s" % key)
         keyid = self.normalize_keyid(keyid)
 
+        if len(proxy_host) > 0 and len(proxy_port) > 0:
+            proxy = "'--httpproxy', '{0}', '--httpport', '{1}'".format(proxy_host, proxy_port)
+        else:
+            proxy = ''
+
         if state == 'present':
             if self.is_key_imported(keyid):
                 module.exit_json(changed=False)
@@ -125,7 +147,7 @@ class RpmKey(object):
                         self.module.fail_json(
                             msg="The specified fingerprint, '%s', does not match the key fingerprint '%s'" % (fingerprint, has_fingerprint)
                         )
-                self.import_key(keyfile)
+                self.import_key(proxy, keyfile)
                 if should_cleanup_keyfile:
                     self.module.cleanup(keyfile)
                 module.exit_json(changed=True)
@@ -213,9 +235,9 @@ class RpmKey(object):
                 return True
         return False
 
-    def import_key(self, keyfile):
+    def import_key(self, proxy, keyfile):
         if not self.module.check_mode:
-            self.execute_command([self.rpm, '--import', keyfile])
+            self.execute_command([self.rpm, '--import', proxy, keyfile])
 
     def drop_key(self, keyid):
         if not self.module.check_mode:
