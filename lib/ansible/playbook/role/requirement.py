@@ -17,6 +17,7 @@
 
 # Make coding more python3-ish
 from __future__ import (absolute_import, division, print_function)
+
 __metaclass__ = type
 
 from ansible.errors import AnsibleError
@@ -39,7 +40,6 @@ display = Display()
 
 
 class RoleRequirement(RoleDefinition):
-
     """
     Helper class for Galaxy, which is used to parse both dependencies
     specified in meta/main.yml and requirements.yml files.
@@ -78,7 +78,8 @@ class RoleRequirement(RoleDefinition):
                 elif role.count(',') == 2:
                     (src, version, name) = role.strip().split(',', 2)
                 else:
-                    raise AnsibleError("Invalid role line (%s). Proper format is 'role_name[,version[,name]]'" % role)
+                    raise AnsibleError(
+                        "Invalid role line (%s). Proper format is 'role_name[,version[,name]]'" % role)
             else:
                 src = role
 
@@ -92,7 +93,8 @@ class RoleRequirement(RoleDefinition):
         if 'role' in role:
             name = role['role']
             if ',' in name:
-                raise AnsibleError("Invalid old style role requirement: %s" % name)
+                raise AnsibleError(
+                    "Invalid old style role requirement: %s" % name)
             del role['role']
             role['name'] = name
         else:
@@ -100,7 +102,9 @@ class RoleRequirement(RoleDefinition):
 
             if 'src' in role:
                 # New style: { src: 'galaxy.role,version,name', other_vars: "here" }
-                if 'github.com' in role["src"] and 'http' in role["src"] and '+' not in role["src"] and not role["src"].endswith('.tar.gz'):
+                if 'github.com' in role["src"] and 'http' in role[
+                    "src"] and '+' not in role["src"] and not role[
+                    "src"].endswith('.tar.gz'):
                     role["src"] = "git+" + role["src"]
 
                 if '+' in role["src"]:
@@ -109,7 +113,8 @@ class RoleRequirement(RoleDefinition):
                     role["src"] = src
 
                 if 'name' not in role:
-                    role["name"] = RoleRequirement.repo_url_to_role_name(role["src"])
+                    role["name"] = RoleRequirement.repo_url_to_role_name(
+                        role["src"])
 
             if 'version' not in role:
                 role['version'] = ''
@@ -124,6 +129,8 @@ class RoleRequirement(RoleDefinition):
         return role
 
     @staticmethod
-    def scm_archive_role(src, scm='git', name=None, version='HEAD', keep_scm_meta=False):
+    def scm_archive_role(src, scm='git', name=None, version='HEAD',
+                         keep_scm_meta=False):
 
-        return scm_archive_resource(src, scm=scm, name=name, version=version, keep_scm_meta=keep_scm_meta)
+        return scm_archive_resource(src, scm=scm, name=name, version=version,
+                                    keep_scm_meta=keep_scm_meta)
