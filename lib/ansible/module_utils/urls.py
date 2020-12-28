@@ -1233,7 +1233,7 @@ class Request:
         context = None
         if HAS_SSLCONTEXT and not validate_certs:
             # In 2.7.9, the default context validates certificates
-            context = SSLContext(ssl.PROTOCOL_SSLv23)
+            context = SSLContext(ssl.PROTOCOL_TLSv1_2)
             if ssl.OP_NO_SSLv2:
                 context.options |= ssl.OP_NO_SSLv2
             context.options |= ssl.OP_NO_SSLv3
