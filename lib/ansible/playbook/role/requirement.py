@@ -93,9 +93,8 @@ class RoleRequirement(RoleDefinition):
             name = role['role']
             if ',' in name:
                 raise AnsibleError("Invalid old style role requirement: %s" % name)
-            else:
-                del role['role']
-                role['name'] = name
+            del role['role']
+            role['name'] = name
         else:
             role = role.copy()
 
